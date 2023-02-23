@@ -18,6 +18,14 @@ print('numpy version: {}'.format(np.__version__))
 sys.path.append('dataset')
 from blender import sphere
 from blender.utils import hex2rgb, deg2rad, random_like_color
+import json
+
+
+class ObjectEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if hasattr(obj, "__dict__"):
+            return vars(obj)
+        return json.JSONEncoder.default(self, obj)
 
 
 def _init_world(cfg_bg, cfg_light, brick_file_path):
@@ -200,10 +208,9 @@ def _set_brick_color(colors, brick, random_color=False):
         color = hex2rgb(random.choice(colors))
         logging.debug('brick random color: {}'.format(color))
 
-    if not (hasattr(brick, 'material') and brick.material) and len(brick.children) == 0:
-
-        logging.error(ValueError('Missing material! See object: ' + str(brick)))
-    if brick.material:
+    if not getattr(brick, "material", None) and len(brick.children) == 0:
+        logging.error(ValueError('Missing material! See obj:\n' + json.dumps(brick, cls=ObjectEncoder)))
+    if getattr(brick, "material", None):
         brick.material.diffuse_color = color
 
     else:  # brick consists of more than one parts/materials
