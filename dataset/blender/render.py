@@ -371,7 +371,7 @@ def render_brick(brick_file_path, number_of_images, render_folder, cfg):
         bpy.ops.render.render(write_still=True)
 
         # remove current background
-        world.texture_slots.clear(0)
+        # world.texture_slots.clear(0)
 
     return
 
