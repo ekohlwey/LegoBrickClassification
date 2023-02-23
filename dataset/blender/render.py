@@ -35,6 +35,7 @@ def _init_world(cfg_bg, cfg_light, brick_file_path):
     # world.ambient_color = hex2rgb(cfg_bg['ambient_color'])
 
     # TODO Finish translating the old sky settings to new sky
+    world.use_nodes = True
     sky_texture = world.node_tree.nodes.new("ShaderNodeTexSky")
     bg = world.node_tree.nodes["Background"]
     world.node_tree.links.new(bg.inputs["Color"], sky_texture.outputs["Color"])
