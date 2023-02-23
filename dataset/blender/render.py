@@ -57,16 +57,16 @@ def _init_world(cfg_bg, cfg_light, brick_file_path):
     cam.location = cfg['world']['cam']['location']
     cam.rotation_euler = Euler(deg2rad(cfg['world']['cam']['rotation']), 'XYZ')
 
-    bpy.ops.object.lamp_add(type='SUN',
+    bpy.ops.object.light_add(type='SUN',
                             radius=1,
-                            view_align=False,
+                            align='WORLD',
                             location=(0, 0, 3)
                             )
 
     # create light
-    bpy.ops.object.lamp_add(type=cfg_light['type'],
+    bpy.ops.object.light_add(type=cfg_light['type'],
                             radius=cfg_light['radius'],
-                            view_align=False,
+                            align='WORLD',
                             location=cfg_light['location'],
                             rotation=deg2rad(cfg_light['rotation']),
                             )
