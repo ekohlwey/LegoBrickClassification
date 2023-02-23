@@ -451,6 +451,8 @@ if __name__ == '__main__':
     logging.info('config file: %s', args.config)
     logging.getLogger().addHandler(logging.StreamHandler())
 
+    bpy.data.objects["Cube"].select_set(True)
+    bpy.ops.object.delete()
     # try:
     render_brick(args.input, args.number, args.save, cfg)
     # except Exception as e:
