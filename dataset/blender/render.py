@@ -154,6 +154,8 @@ def _init_brick(brick, cfg_brick):
         dim_target = cfg_brick['size_normalization']['target_dim']
         try:
             logging.debug(brick.dimensions)
+            logging.debug(f"Objects: {', '.join([x.name for x in bpy.data.objects])}")
+            logging.debug(f"Dimensions: {', '.join([x.dimensions for x in bpy.data.objects])}")
             if brick.dimensions[0] == 0.0000:
                 logging.debug(bpy.context.object.dimensions)
                 scale_factor = dim_target / max(bpy.context.object.dimensions)
