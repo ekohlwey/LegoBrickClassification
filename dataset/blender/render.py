@@ -20,76 +20,76 @@ from blender.utils import hex2rgb, deg2rad, random_like_color
 import json
 
 
-
-def _init_world(cfg_bg, cfg_light, brick_file_path):
-    # remove all elements in scene
-    bpy.ops.object.select_all(action="SELECT")
-    bpy.ops.object.delete(use_global=False)
-
-    # create world
-    world = bpy.data.worlds.new("World")
-    bpy.context.scene.world = world
-
-    # # set world background
-    # world.use_sky_blend = True
-    # world.horizon_color = hex2rgb(cfg_bg['horizon_color'])
-    # world.zenith_color = hex2rgb(cfg_bg['zenith_color'])
-    # world.ambient_color = hex2rgb(cfg_bg['ambient_color'])
-
-    # TODO Finish translating the old sky settings to new sky
-    world.use_nodes = True
-    sky_texture = world.node_tree.nodes.new("ShaderNodeTexSky")
-    bg = world.node_tree.nodes["Background"]
-    world.node_tree.links.new(bg.inputs["Color"], sky_texture.outputs["Color"])
-    sky_texture.sky_type = 'HOSEK_WILKIE'  # or 'PREETHAM'
-    sky_texture.turbidity = 2.0
-    sky_texture.ground_albedo = 0.4
-    sky_texture.sun_direction = Vector((1.0, 0.0, 1.0))  # add `import mathutils` at the beginning of the script
-
-    # load object from file
-    bpy.ops.ldraw_exporter.import_operator(filepath=brick_file_path)
-
-    # create camera
-    bpy.ops.object.add(type='CAMERA')
-    cam = bpy.context.object
-    bpy.context.scene.camera = cam
-
-    # move camera position
-    cam.location = cfg['world']['cam']['location']
-    cam.rotation_euler = Euler(deg2rad(cfg['world']['cam']['rotation']), 'XYZ')
-
-    bpy.ops.object.light_add(type='SUN',
-                            radius=1,
-                            align='WORLD',
-                            location=(0, 0, 3)
-                            )
-
-    # create light
-    bpy.ops.object.light_add(type=cfg_light['type'],
-                            radius=cfg_light['radius'],
-                            align='WORLD',
-                            location=cfg_light['location'],
-                            rotation=deg2rad(cfg_light['rotation']),
-                            )
-    light = bpy.context.object
-    light.data.energy = cfg_light['energy']
-    if not cfg_light['random']:  # set light to camera position
-        constraint = light.constraints.new('COPY_LOCATION')
-        constraint.target = bpy.data.objects['Camera']
-
-    return world, cam, light
-
-
-def _get_brick():
-    # brick selection
-    for obj in bpy.data.objects:
-        if (obj.name.endswith(".dat")):
-            logging.debug('object name: %s', obj.name)
-            brick = obj
-            logging.debug('brick: %s', brick)
-            return brick
-    logging.error('unable to select brick')
-    raise ValueError('brick cannot selected')
+#
+# def _init_world(cfg_bg, cfg_light, brick_file_path):
+#     # remove all elements in scene
+#     bpy.ops.object.select_all(action="SELECT")
+#     bpy.ops.object.delete(use_global=False)
+#
+#     # create world
+#     world = bpy.data.worlds.new("World")
+#     bpy.context.scene.world = world
+#
+#     # # set world background
+#     # world.use_sky_blend = True
+#     # world.horizon_color = hex2rgb(cfg_bg['horizon_color'])
+#     # world.zenith_color = hex2rgb(cfg_bg['zenith_color'])
+#     # world.ambient_color = hex2rgb(cfg_bg['ambient_color'])
+#
+#     # TODO Finish translating the old sky settings to new sky
+#     world.use_nodes = True
+#     sky_texture = world.node_tree.nodes.new("ShaderNodeTexSky")
+#     bg = world.node_tree.nodes["Background"]
+#     world.node_tree.links.new(bg.inputs["Color"], sky_texture.outputs["Color"])
+#     sky_texture.sky_type = 'HOSEK_WILKIE'  # or 'PREETHAM'
+#     sky_texture.turbidity = 2.0
+#     sky_texture.ground_albedo = 0.4
+#     sky_texture.sun_direction = Vector((1.0, 0.0, 1.0))  # add `import mathutils` at the beginning of the script
+#
+#     # load object from file
+#     bpy.ops.ldraw_exporter.import_operator(filepath=brick_file_path)
+#
+#     # create camera
+#     bpy.ops.object.add(type='CAMERA')
+#     cam = bpy.context.object
+#     bpy.context.scene.camera = cam
+#
+#     # move camera position
+#     cam.location = cfg['world']['cam']['location']
+#     cam.rotation_euler = Euler(deg2rad(cfg['world']['cam']['rotation']), 'XYZ')
+#
+#     bpy.ops.object.light_add(type='SUN',
+#                             radius=1,
+#                             align='WORLD',
+#                             location=(0, 0, 3)
+#                             )
+#
+#     # create light
+#     bpy.ops.object.light_add(type=cfg_light['type'],
+#                             radius=cfg_light['radius'],
+#                             align='WORLD',
+#                             location=cfg_light['location'],
+#                             rotation=deg2rad(cfg_light['rotation']),
+#                             )
+#     light = bpy.context.object
+#     light.data.energy = cfg_light['energy']
+#     if not cfg_light['random']:  # set light to camera position
+#         constraint = light.constraints.new('COPY_LOCATION')
+#         constraint.target = bpy.data.objects['Camera']
+#
+#     return world, cam, light
+#
+#
+# def _get_brick():
+#     # brick selection
+#     for obj in bpy.data.objects:
+#         if (obj.name.endswith(".dat")):
+#             logging.debug('object name: %s', obj.name)
+#             brick = obj
+#             logging.debug('brick: %s', brick)
+#             return brick
+#     logging.error('unable to select brick')
+#     raise ValueError('brick cannot selected')
 
 
 def _render_settings(render_folder, render_cfg):
@@ -187,42 +187,42 @@ def check_blender():
         cwd = os.path.dirname(bpy.context.space_data.text.filepath)
     # get folder of script and add current working directory to path
     sys.path.append(cwd)
-
-
-def _set_brick_color(colors, brick, random_color=False):
-    color = hex2rgb(colors[0])
-    if random_color:
-        color = hex2rgb(random.choice(colors))
-        logging.debug('brick random color: {}'.format(color))
-
-    lego_material = next((x for x in bpy.data.materials if x.get('ldraw_color_name', None) == 'Main_Colour'), None)
-    if not lego_material:
-        logging.error(ValueError('Missing material!'))
-        return
-    lego_material.diffuse_color = color + (1.0,)
-
-
-def random_background_surface(numx=20, numy=20, amp=0.2, scale=0.5, location=(0., 0., -0.4)):
-    # create mesh and object
-    bpy.ops.surface.primitive_nurbs_surface_surface_add(location=(0, 0, 0))
-    surfpatch = bpy.data.objects['SurfPatch']
-    surfpatch.rotation_euler = (np.pi, 0, 0)
-    surfpatch.scale = (100, 100, 100)
-    surfpatch.location[2] = 91
-    material = bpy.data.materials.new('surfpatch color')
-    material.diffuse_color = (1, 1, 1)
-    surfpatch.data.materials.append(material)
-
-    texture = bpy.data.textures.new('surfpatch texture', 'NOISE')
-    # texture.noise_scale = 10
-    # texture.noise_depth = 1
-
-    ts = material.texture_slots.add()
-    ts.texture = texture
-    bpy.data.materials['surfpatch color'].texture_slots[0].color = (0, 0, 0)
-    bpy.data.materials['surfpatch color'].texture_slots[0].diffuse_color_factor = 0.5
-
-    return surfpatch
+#
+#
+# def _set_brick_color(colors, brick, random_color=False):
+#     color = hex2rgb(colors[0])
+#     if random_color:
+#         color = hex2rgb(random.choice(colors))
+#         logging.debug('brick random color: {}'.format(color))
+#
+#     lego_material = next((x for x in bpy.data.materials if x.get('ldraw_color_name', None) == 'Main_Colour'), None)
+#     if not lego_material:
+#         logging.error(ValueError('Missing material!'))
+#         return
+#     lego_material.diffuse_color = color + (1.0,)
+#
+#
+# def random_background_surface(numx=20, numy=20, amp=0.2, scale=0.5, location=(0., 0., -0.4)):
+#     # create mesh and object
+#     bpy.ops.surface.primitive_nurbs_surface_surface_add(location=(0, 0, 0))
+#     surfpatch = bpy.data.objects['SurfPatch']
+#     surfpatch.rotation_euler = (np.pi, 0, 0)
+#     surfpatch.scale = (100, 100, 100)
+#     surfpatch.location[2] = 91
+#     material = bpy.data.materials.new('surfpatch color')
+#     material.diffuse_color = (1, 1, 1)
+#     surfpatch.data.materials.append(material)
+#
+#     texture = bpy.data.textures.new('surfpatch texture', 'NOISE')
+#     # texture.noise_scale = 10
+#     # texture.noise_depth = 1
+#
+#     ts = material.texture_slots.add()
+#     ts.texture = texture
+#     bpy.data.materials['surfpatch color'].texture_slots[0].color = (0, 0, 0)
+#     bpy.data.materials['surfpatch color'].texture_slots[0].diffuse_color_factor = 0.5
+#
+#     return surfpatch
 
 
 """
@@ -287,83 +287,83 @@ def random_background_surface_flat(numx=20, numy=20, amp=0.2, scale=0.5, locatio
 
 
 def render_brick(brick_file_path, number_of_images, render_folder, cfg):
-    # create world, camera, light and background
-    world, cam, light = _init_world(cfg['world']['background'], cfg['world']['light'], brick_file_path)
-    logging.info('initialized world successfully')
-
-    brick = _get_brick()
-
-    # possible cam locations
-    cfg_campos = cfg['world']['cam']['augmentation']
-    if cfg_campos['enabled']:
-        _, _, _, sphere_locations = sphere.get_positions(
-            theta_range=deg2rad(cfg_campos['theta_range']),
-            phi_range=deg2rad(cfg_campos['phi_range']),
-            radius=cfg_campos['radius'],
-            step_size=cfg_campos['step_size'],
-            n_points_circle=cfg_campos['n_points_circle'],
-            zlow=cfg_campos['zlow'],
-            zhigh=cfg_campos['zhigh'])
-        logging.debug('possible cam locations: {}'.format(len(sphere_locations)))
-
+    # # create world, camera, light and background
+    # world, cam, light = _init_world(cfg['world']['background'], cfg['world']['light'], brick_file_path)
+    # logging.info('initialized world successfully')
+    #
+    # brick = _get_brick()
+    #
+    # # possible cam locations
+    # cfg_campos = cfg['world']['cam']['augmentation']
+    # if cfg_campos['enabled']:
+    #     _, _, _, sphere_locations = sphere.get_positions(
+    #         theta_range=deg2rad(cfg_campos['theta_range']),
+    #         phi_range=deg2rad(cfg_campos['phi_range']),
+    #         radius=cfg_campos['radius'],
+    #         step_size=cfg_campos['step_size'],
+    #         n_points_circle=cfg_campos['n_points_circle'],
+    #         zlow=cfg_campos['zlow'],
+    #         zhigh=cfg_campos['zhigh'])
+    #     logging.debug('possible cam locations: {}'.format(len(sphere_locations)))
+    #
     render = _render_settings(render_folder, cfg['render'])
 
     # default location, rotation, color and size normalization
-    brick = _init_brick(brick, cfg['brick'])
-
-    # set camera view to center
-    if cfg['world']['cam']['augmentation']['enabled']:
-        constraint = cam.constraints.new('TRACK_TO')
-        constraint.target = brick
-        constraint.track_axis = 'TRACK_NEGATIVE_Z'
-        constraint.up_axis = 'UP_Y'
-
-    if cfg['world']['background']['surface']['enabled']:
-        bg = random_background_surface()
-
-    base_scale = deepcopy(brick.scale)
-    # create n images using several augmentation parameters
-    logging.info('start rendering %s images', number_of_images)
+    # brick = _init_brick(brick, cfg['brick'])
+    #
+    # # set camera view to center
+    # if cfg['world']['cam']['augmentation']['enabled']:
+    #     constraint = cam.constraints.new('TRACK_TO')
+    #     constraint.target = brick
+    #     constraint.track_axis = 'TRACK_NEGATIVE_Z'
+    #     constraint.up_axis = 'UP_Y'
+    #
+    # if cfg['world']['background']['surface']['enabled']:
+    #     bg = random_background_surface()
+    #
+    # base_scale = deepcopy(brick.scale)
+    # # create n images using several augmentation parameters
+    # logging.info('start rendering %s images', number_of_images)
     for i in range(number_of_images):
 
-        # randomly select one possible camera position
-        if cfg['world']['cam']['augmentation']['enabled']:
-            l = random.choice(sphere_locations)
-            logging.debug('set new camera location: {}'.format(l))
-            cam.location = l
-
-        # randomly select one possible position for lighting
-        if cfg['world']['light']['random']:
-            light_position = random.choice(sphere_locations)
-            logging.debug('set new light location: {}'.format(light_position))
-            light.location = light_position
-
-        # change bg color
-        if cfg['world']['background']['surface']['enabled']:
-            sf = cfg['world']['background']['surface']
-            c = random_like_color(grayscale=sf['grayscale'], lower_limit=sf['lower_limit'], upper_limit=sf['upper_limit'])
-            bg.data.materials['surfpatch color'].diffuse_color = c
-
-        augmentation = cfg['brick']['augmentation']
-        if augmentation['rotation']['enabled']:
-            rotx = deg2rad(random.choice(augmentation['rotation']['xvalues']))
-            brick.rotation_euler[0] = rotx
-            logging.debug('rotation parameters: rotx {}, roty {}, rotz {}'.format(rotx, brick.rotation_euler[1],
-                                                                                  brick.rotation_euler[2]))
-
-        if augmentation['zoom']['enabled']:
-            zoom_factor = random.uniform(augmentation['zoom']['min'], augmentation['zoom']['max'])
-            brick.scale = zoom_factor * base_scale
-            logging.debug('zoom factor: {}'.format(zoom_factor))
-            logging.debug('brick scale {}'.format(brick.scale))
-
-        if augmentation['translation']['enabled']:
-            posx = random.uniform(augmentation['translation']['min'], augmentation['translation']['max'])
-            posz = random.uniform(augmentation['translation']['min'], augmentation['translation']['max'])
-            brick.location = (posx, 0.0, posz)
-            logging.debug('brick location after translation: {}'.format(brick.location))
-        if augmentation['color']['enabled']:
-            _set_brick_color(augmentation['color']['colors'], brick, random_color=True)
+        # # randomly select one possible camera position
+        # if cfg['world']['cam']['augmentation']['enabled']:
+        #     l = random.choice(sphere_locations)
+        #     logging.debug('set new camera location: {}'.format(l))
+        #     cam.location = l
+        #
+        # # randomly select one possible position for lighting
+        # if cfg['world']['light']['random']:
+        #     light_position = random.choice(sphere_locations)
+        #     logging.debug('set new light location: {}'.format(light_position))
+        #     light.location = light_position
+        #
+        # # change bg color
+        # if cfg['world']['background']['surface']['enabled']:
+        #     sf = cfg['world']['background']['surface']
+        #     c = random_like_color(grayscale=sf['grayscale'], lower_limit=sf['lower_limit'], upper_limit=sf['upper_limit'])
+        #     bg.data.materials['surfpatch color'].diffuse_color = c
+        #
+        # augmentation = cfg['brick']['augmentation']
+        # if augmentation['rotation']['enabled']:
+        #     rotx = deg2rad(random.choice(augmentation['rotation']['xvalues']))
+        #     brick.rotation_euler[0] = rotx
+        #     logging.debug('rotation parameters: rotx {}, roty {}, rotz {}'.format(rotx, brick.rotation_euler[1],
+        #                                                                           brick.rotation_euler[2]))
+        #
+        # if augmentation['zoom']['enabled']:
+        #     zoom_factor = random.uniform(augmentation['zoom']['min'], augmentation['zoom']['max'])
+        #     brick.scale = zoom_factor * base_scale
+        #     logging.debug('zoom factor: {}'.format(zoom_factor))
+        #     logging.debug('brick scale {}'.format(brick.scale))
+        #
+        # if augmentation['translation']['enabled']:
+        #     posx = random.uniform(augmentation['translation']['min'], augmentation['translation']['max'])
+        #     posz = random.uniform(augmentation['translation']['min'], augmentation['translation']['max'])
+        #     brick.location = (posx, 0.0, posz)
+        #     logging.debug('brick location after translation: {}'.format(brick.location))
+        # if augmentation['color']['enabled']:
+        #     _set_brick_color(augmentation['color']['colors'], brick, random_color=True)
 
         # render image
         brick_class = os.path.splitext(os.path.basename(brick_file_path))[0]
