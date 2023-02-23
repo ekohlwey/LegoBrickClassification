@@ -155,14 +155,15 @@ def _init_brick(brick, cfg_brick):
             logging.debug(brick.dimensions)
             logging.debug(f"Objects: {', '.join([x.name for x in bpy.data.objects])}")
             logging.debug(f"Dimensions: {', '.join([str(x.dimensions) for x in bpy.data.objects])}")
-            if brick.dimensions[0] == 0.0000:
-                logging.debug(bpy.context.object.dimensions)
-                scale_factor = dim_target / max(bpy.context.object.dimensions)
-                bpy.context.object.dimensions = bpy.context.object.dimensions * scale_factor
-                bpy.context.object.location = cfg_brick['location']
-                #bpy.context.object.rotation_euler = Euler(deg2rad(cfg_brick['rotation']))
-                multiple_obj = True
-            else:
+            if not max(brick.dimensions) == 0.0000:
+                # Only scale for non-0 dimensions.
+            #     logging.debug(bpy.context.object.dimensions)
+            #     scale_factor = dim_target / max(bpy.context.object.dimensions)
+            #     bpy.context.object.dimensions = bpy.context.object.dimensions * scale_factor
+            #     bpy.context.object.location = cfg_brick['location']
+            #     #bpy.context.object.rotation_euler = Euler(deg2rad(cfg_brick['rotation']))
+            #     multiple_obj = True
+            # else:
                 scale_factor = dim_target / max(brick.dimensions)
                 brick.dimensions = brick.dimensions * scale_factor
                 logging.debug(brick.dimensions)
