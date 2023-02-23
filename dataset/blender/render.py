@@ -190,10 +190,10 @@ def _set_brick_color(colors, brick, random_color=False):
         color = hex2rgb(random.choice(colors))
         logging.debug('brick random color: {}'.format(color))
 
-    if not brick.active_material and len(brick.children) == 0:
+    if not brick.material and len(brick.children) == 0:
         logging.error(ValueError('Missing material!'))
-    if brick.active_material:
-        brick.active_material.diffuse_color = color
+    if brick.material:
+        brick.material.diffuse_color = color
 
     else:  # brick consists of more than one parts/materials
         for obj in brick.children:
@@ -203,7 +203,7 @@ def _set_brick_color(colors, brick, random_color=False):
             if len(obj.material_slots) == 0:
                 logging.error(ValueError('no available material slot'))
             obj.material_slots[0].material = bpy.data.materials['Material']
-            obj.active_material.diffuse_color = color
+            obj.material.diffuse_color = color
 
 
 def random_background_surface(numx=20, numy=20, amp=0.2, scale=0.5, location=(0., 0., -0.4)):
