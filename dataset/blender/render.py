@@ -177,7 +177,7 @@ def _init_brick(brick, cfg_brick):
     #             bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')  # set origin to center
     #             bpy.context.object.location = cfg_brick['location']
     #             obj.select = False
-    # return brick
+    return brick
 
 
 def check_blender():
