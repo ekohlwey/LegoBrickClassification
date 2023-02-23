@@ -57,7 +57,6 @@ def _init_world(cfg_bg, cfg_light, brick_file_path):
 
     # load object from file
     bpy.ops.ldraw_exporter.import_operator(filepath=brick_file_path)
-    bpy.data.objects.remove(bpy.data.objects['LegoGroundPlane'])
 
     # create camera
     bpy.ops.object.add(type='CAMERA')
