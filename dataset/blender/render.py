@@ -5,12 +5,11 @@ from mathutils import Euler, Vector
 # python imports
 import argparse
 import sys
-import json
+import re
 import os
 import logging
 import random
 from copy import deepcopy
-import types
 
 import numpy as np
 
@@ -22,10 +21,13 @@ import json
 
 
 class ObjectEncoder(json.JSONEncoder):
+
     def default(self, obj):
         if hasattr(obj, "__dict__"):
             return vars(obj)
-        return json.JSONEncoder.default(self, obj)
+        else:
+            return str(obj)
+
 
 
 def _init_world(cfg_bg, cfg_light, brick_file_path):
@@ -208,20 +210,31 @@ def _set_brick_color(colors, brick, random_color=False):
         color = hex2rgb(random.choice(colors))
         logging.debug('brick random color: {}'.format(color))
 
-    if not getattr(brick, "material", None) and len(brick.children) == 0:
-        logging.error(ValueError('Missing material! See obj:\n' + json.dumps(brick, cls=ObjectEncoder)))
-    if getattr(brick, "material", None):
-        brick.material.diffuse_color = color
+    lego_materials = [x for x in bpy.data.materials if re.search("^(?:Material)|(?:MatInst)?_.*", x.name)]
+    if len(lego_materials) == 0:
+        logging.error(ValueError('Missing material!'))
 
-    else:  # brick consists of more than one parts/materials
-        for obj in brick.children:
-            if len(obj.material_slots) == 0:
-                bpy.context.scene.objects.active = obj
-                bpy.ops.object.material_slot_add()
-            if len(obj.material_slots) == 0:
-                logging.error(ValueError('no available material slot'))
-            obj.material_slots[0].material = bpy.data.materials['Material']
-            obj.material.diffuse_color = color
+    # TODO note this will set all the materials, which might be undesirable for multi-material bricks.
+    # the algo below seems to try to only change the first material in each child brick, so we might want to
+    # look at doing that in the future.
+    for material in lego_materials:
+        material.diffuse_color = color
+    # material = next((x for x in getattr(brick, "materials", []) if x.name.startswith("Material_")), None)
+    #
+    # if not material and len(brick.children) == 0:
+    #     logging.error(ValueError('Missing material! See obj:\n' + json.dumps(brick, cls=ObjectEncoder)))
+    # if material:
+    #     material.diffuse_color = color
+    #
+    # else:  # brick consists of more than one parts/materials
+    #     for obj in brick.children:
+    #         if len(obj.material_slots) == 0:
+    #             bpy.context.scene.objects.active = obj
+    #             bpy.ops.object.material_slot_add()
+    #         if len(obj.material_slots) == 0:
+    #             logging.error(ValueError('no available material slot'))
+    #         obj.material_slots[0].material = bpy.data.materials['Material']
+    #         obj.material.diffuse_color = color
 
 
 def random_background_surface(numx=20, numy=20, amp=0.2, scale=0.5, location=(0., 0., -0.4)):
