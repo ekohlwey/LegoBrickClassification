@@ -122,8 +122,8 @@ def _init_brick(brick, cfg_brick):
         logging.debug('brick with multiple objects: %s', brick.children)
         # join sub-elements to a new brick
         for obj in brick.children:
-            obj.select = True
-            bpy.context.scene.objects.active = obj
+            obj.select_set(True)
+            bpy.context.view_layer.objects.active = obj
             # print(obj.dimensions)
             # print(obj.type)
 
