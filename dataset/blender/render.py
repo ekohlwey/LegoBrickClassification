@@ -118,34 +118,34 @@ def _init_brick(brick, cfg_brick):
     brick.location = cfg_brick['location']
     _set_brick_color([cfg_brick['color']], brick, random_color=True)
 
-    if len(brick.children) >= 1:  # brick with multiple parts
-        logging.debug('brick with multiple objects: %s', brick.children)
-        # join sub-elements to a new brick
-        for obj in brick.children:
-            obj.select_set(True)
-            bpy.context.view_layer.objects.active = obj
-            # print(obj.dimensions)
-            # print(obj.type)
-
-        # print(bpy.context.selected_objects)
-        bpy.ops.object.join()  # combine sub-elements
-        bpy.ops.object.parent_clear(type='CLEAR')  # move group outside the parent
-
-        # remove old brick
-        bpy.data.objects.remove(bpy.data.objects[brick.name], True)
-        # set the new brick
-        new = False
-        for obj in bpy.data.objects:
-            if obj.name == bpy.context.selected_objects[0].name:
-                new = True
-                logging.debug('object name: %s', obj.name)
-                brick = obj
-
-                logging.debug('new brick selected: %s', brick)
-        if not new:
-            e = 'new brick could not be selected'
-            logging.error(e)
-            raise ValueError(e)
+    # if len(brick.children) >= 1:  # brick with multiple parts
+    #     logging.debug('brick with multiple objects: %s', brick.children)
+    #     # join sub-elements to a new brick
+    #     for obj in brick.children:
+    #         obj.select_set(True)
+    #         bpy.context.view_layer.objects.active = obj
+    #         # print(obj.dimensions)
+    #         # print(obj.type)
+    #
+    #     # print(bpy.context.selected_objects)
+    #     bpy.ops.object.join()  # combine sub-elements
+    #     bpy.ops.object.parent_clear(type='CLEAR')  # move group outside the parent
+    #
+    #     # remove old brick
+    #     bpy.data.objects.remove(bpy.data.objects[brick.name], True)
+    #     # set the new brick
+    #     new = False
+    #     for obj in bpy.data.objects:
+    #         if obj.name == bpy.context.selected_objects[0].name:
+    #             new = True
+    #             logging.debug('object name: %s', obj.name)
+    #             brick = obj
+    #
+    #             logging.debug('new brick selected: %s', brick)
+    #     if not new:
+    #         e = 'new brick could not be selected'
+    #         logging.error(e)
+    #         raise ValueError(e)
 
     # size normalization: set longest dimension to target size
     multiple_obj = False
