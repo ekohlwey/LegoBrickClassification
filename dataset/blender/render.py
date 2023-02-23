@@ -21,7 +21,7 @@ from blender.utils import hex2rgb, deg2rad, random_like_color
 
 def _init_world(cfg_bg, cfg_light, brick_file_path):
     # remove all elements in scene
-    bpy.ops.object.select_by_layer()
+    bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
 
     # create world
