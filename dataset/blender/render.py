@@ -93,7 +93,7 @@ def _get_brick():
 
 def _render_settings(render_folder, render_cfg):
     os.makedirs(render_folder, exist_ok=True)
-    bpy.context.scene.render.engine = 'BLENDER_RENDER'
+    bpy.context.scene.render.engine = 'CYCLES'
     render = bpy.data.scenes['Scene'].render
     render.resolution_x = render_cfg['width']
     render.resolution_y = render_cfg['height']
