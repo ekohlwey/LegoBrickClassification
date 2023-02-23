@@ -26,14 +26,22 @@ def _init_world(cfg_bg, cfg_light, brick_file_path):
 
     # create world
     world = bpy.data.worlds.new("World")
-    world.use_sky_paper = True
     bpy.context.scene.world = world
 
-    # set world background
-    world.use_sky_blend = True
-    world.horizon_color = hex2rgb(cfg_bg['horizon_color'])
-    world.zenith_color = hex2rgb(cfg_bg['zenith_color'])
-    world.ambient_color = hex2rgb(cfg_bg['ambient_color'])
+    # # set world background
+    # world.use_sky_blend = True
+    # world.horizon_color = hex2rgb(cfg_bg['horizon_color'])
+    # world.zenith_color = hex2rgb(cfg_bg['zenith_color'])
+    # world.ambient_color = hex2rgb(cfg_bg['ambient_color'])
+
+    # TODO Finish translating the old sky settings to new sky
+    sky_texture = world.node_tree.nodes.new("ShaderNodeTexSky")
+    bg = world.node_tree.nodes["Background"]
+    world.node_tree.links.new(bg.inputs["Color"], sky_texture.outputs["Color"])
+    sky_texture.sky_type = 'HOSEK_WILKIE'  # or 'PREETHAM'
+    sky_texture.turbidity = 2.0
+    sky_texture.ground_albedo = 0.4
+    sky_texture.sun_direction = Vector((1.0, 0.0, 1.0))  # add `import mathutils` at the beginning of the script
 
     # load object from file
     bpy.ops.import_scene.importldraw(filepath=brick_file_path)
