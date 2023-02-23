@@ -56,7 +56,7 @@ def _init_world(cfg_bg, cfg_light, brick_file_path):
     sky_texture.sun_direction = Vector((1.0, 0.0, 1.0))  # add `import mathutils` at the beginning of the script
 
     # load object from file
-    bpy.ops.import_scene.importldraw(filepath=brick_file_path)
+    bpy.ops.ldraw_exporter.import_operator(filepath=brick_file_path)
     bpy.data.objects.remove(bpy.data.objects['LegoGroundPlane'])
 
     # create camera
@@ -212,7 +212,7 @@ def _set_brick_color(colors, brick, random_color=False):
         color = hex2rgb(random.choice(colors))
         logging.debug('brick random color: {}'.format(color))
 
-    lego_materials = [x for x in bpy.data.materials if re.search("^(?:Material)|(?:MatInst)?_.*", x.name)]
+    lego_materials = [x for x in bpy.data.materials if x['ldraw_color_name'] == 'Main_Colour']
     if len(lego_materials) == 0:
         logging.error(ValueError('Missing material!'))
 
