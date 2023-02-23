@@ -20,15 +20,6 @@ from blender.utils import hex2rgb, deg2rad, random_like_color
 import json
 
 
-class ObjectEncoder(json.JSONEncoder):
-
-    def default(self, obj):
-        if hasattr(obj, "__dict__"):
-            return vars(obj)
-        else:
-            return str(obj)
-
-
 
 def _init_world(cfg_bg, cfg_light, brick_file_path):
     # remove all elements in scene
@@ -149,52 +140,44 @@ def _init_brick(brick, cfg_brick):
 
     # size normalization: set longest dimension to target size
     multiple_obj = False
-    if cfg_brick['size_normalization']['enabled']:
-        dim_target = cfg_brick['size_normalization']['target_dim']
-        try:
-            logging.debug(brick.dimensions)
-            logging.debug(f"Objects: {', '.join([x.name for x in bpy.data.objects])}")
-            logging.debug(f"Dimensions: {', '.join([str(x.dimensions) for x in bpy.data.objects])}")
-            if not max(brick.dimensions) == 0.0000:
-                # Only scale for non-0 dimensions.
-            #     logging.debug(bpy.context.object.dimensions)
-            #     scale_factor = dim_target / max(bpy.context.object.dimensions)
-            #     bpy.context.object.dimensions = bpy.context.object.dimensions * scale_factor
-            #     bpy.context.object.location = cfg_brick['location']
-            #     #bpy.context.object.rotation_euler = Euler(deg2rad(cfg_brick['rotation']))
-            #     multiple_obj = True
-            # else:
-                scale_factor = dim_target / max(brick.dimensions)
-                brick.dimensions = brick.dimensions * scale_factor
-                logging.debug(brick.dimensions)
-                brick.location = cfg_brick['location']
-                brick.rotation_euler = Euler(deg2rad(cfg_brick['rotation']))
-        except Exception as e:
-            logging.error(e)
-            raise e
-
-    # set new origin to geometry center
-    bpy.ops.object.select_all(action='DESELECT')
-    for obj in bpy.context.scene.objects:
-        if bpy.context.object.name == obj.name:
-            obj.select = True
-            bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')  # set origin to center
-            bpy.context.object.location = cfg_brick['location']
-            obj.select = False
-
-    # bpy.context.scene.update()
-    if multiple_obj:
-        brick = bpy.context.object
-        bpy.ops.object.select_all(action='DESELECT')
-    else:
-        bpy.ops.object.select_all(action='DESELECT')
-        for obj in bpy.context.scene.objects:
-            if brick.name == obj.name:
-                obj.select = True
-                bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')  # set origin to center
-                bpy.context.object.location = cfg_brick['location']
-                obj.select = False
-    return brick
+    # if cfg_brick['size_normalization']['enabled']:
+    #     dim_target = cfg_brick['size_normalization']['target_dim']
+    #     try:
+    #         logging.debug(brick.dimensions)
+    #         logging.debug(f"Objects: {', '.join([x.name for x in bpy.data.objects])}")
+    #         logging.debug(f"Dimensions: {', '.join([str(x.dimensions) for x in bpy.data.objects])}")
+    #         if not max(brick.dimensions) == 0.0000:
+    #             scale_factor = dim_target / max(brick.dimensions)
+    #             brick.dimensions = brick.dimensions * scale_factor
+    #             logging.debug(brick.dimensions)
+    #             brick.location = cfg_brick['location']
+    #             brick.rotation_euler = Euler(deg2rad(cfg_brick['rotation']))
+    #     except Exception as e:
+    #         logging.error(e)
+    #         raise e
+    #
+    # # set new origin to geometry center
+    # bpy.ops.object.select_all(action='DESELECT')
+    # for obj in bpy.context.scene.objects:
+    #     if bpy.context.object.name == obj.name:
+    #         obj.select_set(True)
+    #         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')  # set origin to center
+    #         bpy.context.object.location = cfg_brick['location']
+    #         obj.select_set(False)
+    #
+    # # bpy.context.scene.update()
+    # if multiple_obj:
+    #     brick = bpy.context.object
+    #     bpy.ops.object.select_all(action='DESELECT')
+    # else:
+    #     bpy.ops.object.select_all(action='DESELECT')
+    #     for obj in bpy.context.scene.objects:
+    #         if brick.name == obj.name:
+    #             obj.select = True
+    #             bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')  # set origin to center
+    #             bpy.context.object.location = cfg_brick['location']
+    #             obj.select = False
+    # return brick
 
 
 def check_blender():
@@ -212,31 +195,11 @@ def _set_brick_color(colors, brick, random_color=False):
         color = hex2rgb(random.choice(colors))
         logging.debug('brick random color: {}'.format(color))
 
-    lego_materials = [x for x in bpy.data.materials if x.get('ldraw_color_name', None) == 'Main_Colour']
-    if len(lego_materials) == 0:
+    lego_material = next([x for x in bpy.data.materials if x.get('ldraw_color_name', None) == 'Main_Colour'], None)
+    if not lego_material:
         logging.error(ValueError('Missing material!'))
-
-    # TODO note this will set all the materials, which might be undesirable for multi-material bricks.
-    # the algo below seems to try to only change the first material in each child brick, so we might want to
-    # look at doing that in the future.
-    for material in lego_materials:
-        material.diffuse_color = color + (1.0,)
-    # material = next((x for x in getattr(brick, "materials", []) if x.name.startswith("Material_")), None)
-    #
-    # if not material and len(brick.children) == 0:
-    #     logging.error(ValueError('Missing material! See obj:\n' + json.dumps(brick, cls=ObjectEncoder)))
-    # if material:
-    #     material.diffuse_color = color
-    #
-    # else:  # brick consists of more than one parts/materials
-    #     for obj in brick.children:
-    #         if len(obj.material_slots) == 0:
-    #             bpy.context.scene.objects.active = obj
-    #             bpy.ops.object.material_slot_add()
-    #         if len(obj.material_slots) == 0:
-    #             logging.error(ValueError('no available material slot'))
-    #         obj.material_slots[0].material = bpy.data.materials['Material']
-    #         obj.material.diffuse_color = color
+        return
+    lego_material.diffuse_color = color + (1.0,)
 
 
 def random_background_surface(numx=20, numy=20, amp=0.2, scale=0.5, location=(0., 0., -0.4)):
