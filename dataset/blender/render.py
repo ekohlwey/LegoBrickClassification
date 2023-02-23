@@ -201,15 +201,8 @@ def _set_brick_color(colors, brick, random_color=False):
         logging.debug('brick random color: {}'.format(color))
 
     if not (hasattr(brick, 'material') and brick.material) and len(brick.children) == 0:
-        def dump_obj(obj, level=0)->str:
-            value = " " + str(obj) + "\n"
-            for key, value in obj.__dict__.items():
-                if not isinstance(value, types.InstanceType):
-                    value += " " * level + " %s -> %s\n" % (key, value)
-                else:
-                    value += dump_obj(value, level + 2)
-            return value
-        logging.error(ValueError('Missing material! See object: ' + dump_obj(brick)))
+
+        logging.error(ValueError('Missing material! See object: ' + str(brick)))
     if brick.material:
         brick.material.diffuse_color = color
 
