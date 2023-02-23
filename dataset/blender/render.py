@@ -218,7 +218,7 @@ def _set_brick_color(colors, brick, random_color=False):
     # the algo below seems to try to only change the first material in each child brick, so we might want to
     # look at doing that in the future.
     for material in lego_materials:
-        material.diffuse_color = color
+        material.diffuse_color = color + (1.0,)
     # material = next((x for x in getattr(brick, "materials", []) if x.name.startswith("Material_")), None)
     #
     # if not material and len(brick.children) == 0:
