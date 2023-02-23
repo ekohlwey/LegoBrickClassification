@@ -211,7 +211,7 @@ def _set_brick_color(colors, brick, random_color=False):
         color = hex2rgb(random.choice(colors))
         logging.debug('brick random color: {}'.format(color))
 
-    lego_materials = [x for x in bpy.data.materials if x['ldraw_color_name'] == 'Main_Colour']
+    lego_materials = [x for x in bpy.data.materials if x.get('ldraw_color_name', None) == 'Main_Colour']
     if len(lego_materials) == 0:
         logging.error(ValueError('Missing material!'))
 
