@@ -10,6 +10,7 @@ import os
 import logging
 import random
 from copy import deepcopy
+import types
 
 import numpy as np
 
@@ -199,7 +200,7 @@ def _set_brick_color(colors, brick, random_color=False):
         color = hex2rgb(random.choice(colors))
         logging.debug('brick random color: {}'.format(color))
 
-    if not brick.material and len(brick.children) == 0:
+    if not (hasattr(brick, 'material') and brick.material) and len(brick.children) == 0:
         def dump_obj(obj, level=0)->str:
             value = " " + str(obj) + "\n"
             for key, value in obj.__dict__.items():
