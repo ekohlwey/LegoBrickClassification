@@ -21,9 +21,9 @@ def render_settings(render_folder):
     render.resolution_x = 100
     render.resolution_y = 100
     render.resolution_percentage = 100
-    bpy.context.scene.render.image_settings.file_format = render_cfg['format']
-    bpy.context.scene.render.image_settings.color_mode = render_cfg['color_mode']
-    bpy.context.scene.render.image_settings.quality = render_cfg['quality']  # compression in range [0, 100]
+    bpy.context.scene.render.image_settings.file_format = "PNG"
+    bpy.context.scene.render.image_settings.color_mode = "RGB"
+    bpy.context.scene.render.image_settings.quality = 70
     return render
 
 
