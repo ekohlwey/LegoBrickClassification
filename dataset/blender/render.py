@@ -5,28 +5,22 @@ from mathutils import Euler, Vector
 # python imports
 import argparse
 import sys
-import re
 import os
 import logging
 import random
-from copy import deepcopy
+import math
 
-import numpy as np
 
-print('numpy version: {}'.format(np.__version__))
 sys.path.append('dataset')
-from blender import sphere
-from blender.utils import hex2rgb, deg2rad, random_like_color
-import json
 
 
 def _render_settings(render_folder, render_cfg):
     os.makedirs(render_folder, exist_ok=True)
     bpy.context.scene.render.engine = 'CYCLES'
     render = bpy.data.scenes['Scene'].render
-    render.resolution_x = render_cfg['width']
-    render.resolution_y = render_cfg['height']
-    render.resolution_percentage = render_cfg['resolution']
+    render.resolution_x = 100
+    render.resolution_y = 100
+    render.resolution_percentage = 100
     bpy.context.scene.render.image_settings.file_format = render_cfg['format']
     bpy.context.scene.render.image_settings.color_mode = render_cfg['color_mode']
     bpy.context.scene.render.image_settings.quality = render_cfg['quality']  # compression in range [0, 100]
@@ -34,7 +28,7 @@ def _render_settings(render_folder, render_cfg):
 
 
 def check_blender():
-    if bpy.context.space_data == None:
+    if not bpy.context.space_data:
         cwd = os.path.dirname(os.path.abspath(__file__))
     else:
         cwd = os.path.dirname(bpy.context.space_data.text.filepath)
@@ -42,8 +36,12 @@ def check_blender():
     sys.path.append(cwd)
 
 
-def render_brick(brick_file_path, number_of_images, render_folder, cfg):
-    render = _render_settings(render_folder, cfg['render'])
+def deselect_all():
+    bpy.ops.object.select_all(action='DESELECT')
+
+
+def render_brick(brick_file_path, number_of_images, render_folder):
+    render = _render_settings(render_folder)
     bpy.ops.ldraw_exporter.import_operator(filepath=brick_file_path)
     for i in range(number_of_images):
         # render image
@@ -82,6 +80,55 @@ def parse_args(parser):
     return parser.parse_args(argv)
 
 
+def remove_initital_cube():
+    bpy.data.objects["Cube"].select_set(True)
+    bpy.ops.object.delete()
+
+
+def add_ground_plane():
+    deselect_all()
+    bpy.ops.mesh.primitive_plane_add()
+    new_plane = bpy.context.selected_objects[0]
+    new_plane.name = "Ground"
+    new_plane.scale = (10000, 10000, 1)
+    bpy.ops.rigidbody.object_add(type='PASSIVE')
+
+
+def find_brick_object():
+    collection = next(x for x in bpy.data.collections if x.name.endswith(".dat"))
+    return collection.children['Parts'].objects[0]
+
+
+def random_angle():
+    return random.uniform(0, 2 * math.pi)
+
+
+def select_object(obj):
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+
+
+def setup_brick_simulation():
+    deselect_all()
+    brick = find_brick_object()
+    bpy.ops.rigidbody.object_add(type='ACTIVE')
+    brick.location = (0, 0, brick.dimensions.z * 2)
+    brick.rigid_body.collision_shape = 'MESH'
+    brick.rotation_euler = (random_angle(), random_angle(), random_angle())
+    select_object(brick)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+
+
+def simulate():
+    pc = bpy.context.scene.rigidbody_world.point_cache
+    bpy.ops.ptcache.bake({"point_cache": pc}, bake=True)
+    bpy.context.scene.frame_set(250)
+
+
+def setup_rigid_body_world():
+    bpy.ops.rigidbody.world_add()
+
+
 if __name__ == '__main__':
 
     # check if script is opened in blender program
@@ -109,10 +156,6 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(-1)
 
-    # load config file for blender settings
-    cfg_path = os.path.join(os.path.dirname(__file__), 'configs', args.config)
-    with open(cfg_path, 'r') as fr:
-        cfg = json.load(fr)
 
     # init logger
     brick_id = os.path.splitext(os.path.basename(args.input))[0]
@@ -128,9 +171,7 @@ if __name__ == '__main__':
     logging.info('config file: %s', args.config)
     logging.getLogger().addHandler(logging.StreamHandler())
 
-    bpy.data.objects["Cube"].select_set(True)
-    bpy.ops.object.delete()
-    # try:
-    render_brick(args.input, args.number, args.save, cfg)
-    # except Exception as e:
-    #    logging.error(e)
+    remove_initital_cube()
+    setup_rigid_body_world()
+    add_ground_plane()
+    render_brick(args.input, args.number, args.save)
