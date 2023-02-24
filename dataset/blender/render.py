@@ -14,7 +14,7 @@ import math
 sys.path.append('dataset')
 
 
-def _render_settings(render_folder, render_cfg):
+def render_settings(render_folder):
     os.makedirs(render_folder, exist_ok=True)
     bpy.context.scene.render.engine = 'CYCLES'
     render = bpy.data.scenes['Scene'].render
@@ -41,7 +41,7 @@ def deselect_all():
 
 
 def render_brick(brick_file_path, number_of_images, render_folder):
-    render = _render_settings(render_folder)
+    render = render_settings(render_folder)
     bpy.ops.ldraw_exporter.import_operator(filepath=brick_file_path)
     for i in range(number_of_images):
         # render image
